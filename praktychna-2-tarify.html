@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Практична робота №2 — Моделювання підвищення тарифів автоперевезень | ХНАДУ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --paper:#EDF1F4; --surface:#FFFFFF; --surface-2:#F6F8FA;
+  --ink:#16202B; --ink-2:#4A5A68; --ink-3:#71828F;
+  --rule:#C7D2DA; --rule-soft:#DEE6EB;
+  --a1:#B03A2E; --a1-soft:#FBEAE7;
+  --a2:#1F5FA9; --a2-soft:#E4EDF7;
+  --cross:#1D7A4F; --cross-soft:#E2F2EA;
+  --warn:#8A5A00; --warn-soft:#FBF1DC;
+  --lin:#71828F;
+  --focus:#1F5FA9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1720; --surface:#16212C; --surface-2:#1B2734;
+    --ink:#E3EAF0; --ink-2:#A9B8C4; --ink-3:#8496A3;
+    --rule:#2C3B49; --rule-soft:#23313E;
+    --a1:#E8796A; --a1-soft:#3A1F1B;
+    --a2:#6FA8E8; --a2-soft:#1B2E44;
+    --cross:#5FC392; --cross-soft:#163428;
+    --warn:#D9A74A; --warn-soft:#34280F;
+    --lin:#8496A3; --focus:#6FA8E8;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1720; --surface:#16212C; --surface-2:#1B2734;
+  --ink:#E3EAF0; --ink-2:#A9B8C4; --ink-3:#8496A3;
+  --rule:#2C3B49; --rule-soft:#23313E;
+  --a1:#E8796A; --a1-soft:#3A1F1B;
+  --a2:#6FA8E8; --a2-soft:#1B2E44;
+  --cross:#5FC392; --cross-soft:#163428;
+  --warn:#D9A74A; --warn-soft:#34280F;
+  --lin:#8496A3; --focus:#6FA8E8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px 40px}
+.topbar{position:relative;max-width:1040px;margin:0 auto}
+.themetoggle{position:absolute;top:14px;right:20px;background:none;border:1px solid var(--rule);
+  color:var(--ink-2);border-radius:2px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.themetoggle:hover{border-color:var(--ink-3)}
+
+.masthead{border-bottom:2px solid var(--ink);padding:34px 0 18px}
+.masthead .org{font-family:"IBM Plex Serif",Georgia,serif;font-size:15.5px;color:var(--ink-2);margin:0 0 2px}
+.masthead .dept{font-size:14px;color:var(--ink-3);margin:0 0 18px}
+.masthead h1{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;
+  font-size:clamp(25px,4vw,38px);line-height:1.15;margin:0 0 10px;letter-spacing:-.015em;max-width:22ch}
+.masthead .lede{font-size:16.5px;color:var(--ink-2);max-width:68ch;margin:0 0 18px}
+.docmeta{display:flex;flex-wrap:wrap;border-top:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-2)}
+.docmeta div{padding:9px 18px 9px 0;margin-right:18px;border-right:1px solid var(--rule-soft)}
+.docmeta div:last-child{border-right:0}
+
+.step{border-top:1px solid var(--rule);padding:32px 0 8px;display:grid;
+  grid-template-columns:78px 1fr;gap:0 24px;align-items:start}
+.step[hidden]{display:none}
+.stepnum{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3);
+  padding-top:8px;border-right:1px solid var(--rule-soft);min-height:100%;line-height:1.4}
+.stepbody{min-width:0}
+h2{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;font-size:24px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+h3{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;font-size:18px;margin:26px 0 8px}
+h4{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px;max-width:74ch}
+ul,ol{max-width:74ch;margin:0 0 14px;padding-left:22px}
+li{margin-bottom:6px}
+.sub{color:var(--ink-2);font-size:15.5px;margin-bottom:18px;max-width:72ch}
+b,strong{font-weight:600}
+
+.form{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;max-width:680px;margin-bottom:18px}
+label{display:block;font-size:13.5px;color:var(--ink-2);margin-bottom:5px}
+input[type=text]{width:100%;padding:11px 13px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:2px;color:var(--ink);font:inherit;font-size:15.5px}
+input:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+.btn{display:inline-flex;align-items:center;gap:9px;background:var(--ink);color:var(--paper);
+  border:1px solid var(--ink);border-radius:2px;padding:12px 20px;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+.btn:hover{background:var(--a2);border-color:var(--a2);color:#FFFFFF}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.btn:disabled{background:var(--rule-soft);border-color:var(--rule);color:var(--ink-3);cursor:not-allowed}
+.btn.ghost{background:none;color:var(--ink);font-weight:500}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.btn.sm{padding:8px 14px;font-size:14px}
+.err{color:var(--a1);font-size:14px;margin-top:10px;min-height:20px}
+
+.box{background:var(--surface);border:1px solid var(--rule);padding:18px 22px;margin:18px 0}
+.box.soft{background:var(--surface-2);border-color:var(--rule-soft)}
+.box.hint{border-left:4px solid var(--a2)}
+.box.alert{border-left:4px solid var(--warn);background:var(--warn-soft)}
+.box p:last-child,.box ul:last-child,.box ol:last-child{margin-bottom:0}
+.f{font-family:"IBM Plex Mono",monospace;font-size:14.5px;background:var(--surface-2);
+  border:1px solid var(--rule-soft);padding:2px 7px;display:inline-block}
+.formula{font-family:"IBM Plex Mono",monospace;font-size:15.5px;text-align:center;
+  background:var(--surface-2);border:1px solid var(--rule-soft);padding:14px 16px;margin:14px 0;overflow-x:auto}
+.formula .lbl{display:block;font-family:"IBM Plex Sans",sans-serif;font-size:12.5px;color:var(--ink-3);margin-top:8px}
+
+.variantbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;background:var(--surface);
+  border:1px solid var(--rule);border-left:4px solid var(--ink);padding:14px 18px;margin-bottom:20px}
+.variantbar .no{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;line-height:1}
+.variantbar .cat{font-family:"IBM Plex Serif",Georgia,serif;font-size:17px;font-weight:600}
+.variantbar .who{color:var(--ink-2);font-size:14px;margin-left:auto}
+
+.alts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.alt{background:var(--surface);border:1px solid var(--rule);padding:16px 18px}
+.alt.one{border-top:3px solid var(--a1)}
+.alt.two{border-top:3px solid var(--a2)}
+.alt .tag{font-size:13px;color:var(--ink-2);margin-bottom:2px}
+.alt .nm{font-family:"IBM Plex Serif",Georgia,serif;font-size:17px;font-weight:600;margin-bottom:12px;line-height:1.3}
+.alt dl{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:0;font-size:14.5px}
+.alt dt{color:var(--ink-2)}
+.alt dd{margin:0;font-family:"IBM Plex Mono",monospace;font-weight:500;text-align:right}
+.alt.one dd{color:var(--a1)}
+.alt.two dd{color:var(--a2)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin:14px 0 24px}
+.kpi{background:var(--surface);padding:15px 18px}
+.kpi .k{font-size:12.5px;color:var(--ink-2);margin-bottom:6px;line-height:1.35}
+.kpi .v{font-family:"IBM Plex Mono",monospace;font-size:24px;font-weight:600;line-height:1.1}
+.kpi .u{font-size:12.5px;color:var(--ink-3);margin-top:4px}
+.kpi.cross .v{color:var(--cross)}
+.kpi.warn .v{color:var(--warn)}
+
+.chart{background:var(--surface);border:1px solid var(--rule);padding:16px 18px 10px;margin-bottom:16px}
+.chart h4{margin:0 0 2px}
+.chart .cap{font-size:13.5px;color:var(--ink-2);margin:0 0 12px;max-width:72ch}
+.cbox{position:relative;height:320px}
+@media(max-width:640px){.cbox{height:250px}}
+
+.tablewrap{max-height:420px;overflow:auto;border:1px solid var(--rule);background:var(--surface)}
+table.data{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:13.5px;min-width:640px}
+table.data thead th{position:sticky;top:0;background:var(--surface-2);text-align:right;padding:9px 12px;
+  font-weight:600;border-bottom:1px solid var(--rule);color:var(--ink-2);font-size:12.5px;
+  font-family:"IBM Plex Sans",sans-serif;white-space:nowrap}
+table.data thead th:first-child{text-align:left}
+table.data tbody td{padding:6px 12px;text-align:right;border-bottom:1px solid var(--rule-soft)}
+table.data tbody td:first-child{text-align:left;color:var(--ink-2)}
+table.data tbody tr.hl{background:var(--cross-soft)}
+table.data tbody tr.hl td{font-weight:600}
+
+table.plain{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0 18px}
+table.plain th,table.plain td{border:1px solid var(--rule-soft);padding:8px 11px;text-align:left;vertical-align:top}
+table.plain th{background:var(--surface-2);font-weight:600;font-size:13.5px;color:var(--ink-2)}
+
+/* інтерактив */
+.qcard{background:var(--surface);border:1px solid var(--rule);padding:16px 18px;margin-bottom:14px}
+.qcard .q{font-weight:600;margin-bottom:10px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 14px;
+  font:inherit;font-size:14.5px;color:var(--ink);cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--ink-3)}
+.opt[aria-pressed="true"]{background:var(--a2-soft);border-color:var(--a2);color:var(--ink);font-weight:600}
+.opt.correct{background:var(--cross-soft);border-color:var(--cross)}
+.opt.wrong{background:var(--a1-soft);border-color:var(--a1)}
+.fb{font-size:14px;margin-top:10px;color:var(--ink-2)}
+.fb.good{color:var(--cross)}
+.fb.bad{color:var(--a1)}
+
+.slider{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;max-width:620px;margin:12px 0}
+input[type=range]{width:100%;accent-color:var(--a2)}
+.sliderval{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600;color:var(--a2);min-width:74px;text-align:right}
+
+textarea{width:100%;min-height:200px;padding:14px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:2px;color:var(--ink);font:inherit;font-size:15.5px;line-height:1.6;resize:vertical}
+.counter{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-3);margin-top:7px}
+.counter.ok{color:var(--cross)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.status{font-size:14px;color:var(--ink-2)}
+.score{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600}
+
+footer{border-top:2px solid var(--ink);margin-top:40px;padding:20px 0 60px;
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:14px;color:var(--ink-2)}
+footer b{color:var(--ink)}
+
+#printzone,#offstage{position:fixed;left:-20000px;top:0;width:900px}
+
+@media(max-width:760px){
+  .step{grid-template-columns:1fr;gap:0}
+  .stepnum{border-right:0;border-bottom:1px solid var(--rule-soft);padding:0 0 8px;margin-bottom:14px;min-height:0}
+  .form,.alts{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar"><button class="themetoggle" id="themeBtn" type="button">Темна тема</button></div>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="org">Харківський національний автомобільно-дорожній університет</p>
+  <p class="dept">Кафедра кібербезпеки · дисципліна «Комп'ютерні системи у логістиці» · спеціальність 122 «Комп'ютерні науки»</p>
+  <h1>Практична робота №2. Моделювання підвищення тарифів автоперевезень</h1>
+  <p class="lede">Інтерактивний тренажер: імітаційне моделювання зростання тарифів двох альтернативних автоперевізників, пошук точки кросоверу, оцінка похибки спрощеного лінійного планування та аналіз чутливості рішення до інфляційних коливань.</p>
+  <div class="docmeta">
+    <div>Горизонт: 60 місяців</div>
+    <div>Обсяг: V = 1000 км/міс.</div>
+    <div>Тариф: грн/км</div>
+    <div>Оцінювання: 5-бальна шкала ECTS</div>
+  </div>
+</header>
+
+<!-- ========== 0. ЗАВДАННЯ ========== -->
+<section class="step">
+  <div class="stepnum">Розділ 1<br>Завдання</div>
+  <div class="stepbody">
+    <h2>Що саме потрібно зробити</h2>
+    <p class="sub">Прочитайте цей розділ повністю, перш ніж натискати будь-які кнопки. Тут описано мету роботи, порядок виконання, форму звіту та критерії оцінювання.</p>
+
+    <h3>Мета роботи</h3>
+    <p>Засвоїти методи комп'ютерного імітаційного моделювання інфляційних процесів в автотранспортних та дорожніх системах, навчитися оцінювати економічну ефективність альтернативних варіантів автоперевезень і визначати оптимальний термін довгострокового логістичного контракту.</p>
+
+    <h3>Практична ситуація, яку ви моделюєте</h3>
+    <p>Логістична компанія планує автоперевезення на 5 років уперед і має обрати одного з двох автоперевізників. Перший бере <b>менше грошей сьогодні</b>, але його витрати зростають швидко: дизельне пальне, екологічні збори Євро-6/7, плата за проїзд платними автомагістралями, знос шин і автокомпонентів, підвищення зарплат водіїв. Другий бере <b>більше сьогодні</b>, але його тариф підвищується повільно — через фіксовану вартість електроенергії, довгостроковий контракт або меншу залежність від пального.</p>
+    <p>Питання, на яке ви маєте відповісти цифрами: <b>з якого місяця дешевший перевізник перестає бути дешевшим</b> і скільки коштує помилка, якщо бюджет планувати за спрощеною лінійною формулою.</p>
+
+    <h3>Завдання практичної роботи</h3>
+    <ol>
+      <li>Дослідити математичні моделі лінійного (арифметичного) та геометричного (складного) підвищення витрат у дорожньо-транспортній галузі.</li>
+      <li>Розрахувати динаміку тарифікації та сукупних логістичних витрат (Total Logistics Cost) за 60 місяців для обох альтернатив свого варіанта.</li>
+      <li>Визначити точку зміни економічної ефективності — точку кросоверу тарифів <span class="f">t*</span>.</li>
+      <li>Проаналізувати похибку спрощеного лінійного планування на 5-річному горизонті: у гривнях на кілометр, у гривнях на місяць та у відсотках.</li>
+      <li>Побудувати 4 порівняльні графіки динаміки тарифів і провести аналіз чутливості рішення при зміні інфляції другої альтернативи від 10 % до 25 %.</li>
+      <li>Сформувати підсумковий звіт із логістичними рекомендаціями щодо термінів укладання контрактів.</li>
+    </ol>
+
+    <h3>Порядок виконання в цьому тренажері</h3>
+    <table class="plain">
+      <tr><th style="width:90px">Розділ</th><th>Що ви робите</th></tr>
+      <tr><td>2</td><td>Розбираєте теорію: дві моделі підвищення тарифів, сукупні витрати, виведення формули кросоверу. З числовими прикладами «на пальцях».</td></tr>
+      <tr><td>3</td><td>Вводите ПІБ і групу — отримуєте свій індивідуальний варіант. Варіант генерується за вашими даними, тому він персональний і завжди відтворюється однаково.</td></tr>
+      <tr><td>4</td><td>Спочатку <b>прогнозуєте</b> результат самостійно, без розрахунку. Це обов'язковий крок: ви маєте зафіксувати свою гіпотезу до того, як програма порахує.</td></tr>
+      <tr><td>5</td><td>Запускаєте моделювання, отримуєте таблицю за 60 місяців, 4 графіки та розгорнутий розбір кожного графіка з вашими числами.</td></tr>
+      <tr><td>6</td><td>Обираєте термін контракту і перевіряєте, який перевізник вигідніший саме на цьому горизонті. Можете змінювати вибір і порівнювати.</td></tr>
+      <tr><td>7</td><td>Проводите аналіз чутливості: рухаєте інфляцію другої альтернативи в діапазоні 10–25 %, зберігаєте сценарії й порівнюєте їх між собою в таблиці.</td></tr>
+      <tr><td>8</td><td>Відповідаєте на 5 контрольних питань для захисту роботи.</td></tr>
+      <tr><td>9</td><td>Пишете висновок і зберігаєте звіт у PDF для здачі викладачу.</td></tr>
+    </table>
+
+    <h3>Критерії оцінювання</h3>
+    <table class="plain">
+      <tr><th style="width:120px">Оцінка</th><th style="width:120px">Рівень</th><th>Критерії</th></tr>
+      <tr><td>5 балів (A)</td><td>Відмінно</td><td>Вірно розраховано місяць кросоверу за свій варіант, побудовано всі 4 графіки, проведено аналіз чутливості з обґрунтуванням автотранспортної стратегії, відповіді на контрольні питання правильні, висновок містить конкретні числа й управлінське рішення.</td></tr>
+      <tr><td>4 бали (B, C)</td><td>Добре</td><td>Розрахунки виконано, точку перетину тарифів знайдено вірно, але відсутній аналіз чутливості або поверхнево описано логістичні висновки.</td></tr>
+      <tr><td>3 бали (D, E)</td><td>Задовільно</td><td>Розрахунки виконано частково, графіки не проаналізовано, відсутнє обґрунтування вибору автоперевізника.</td></tr>
+      <tr><td>2 бали (F)</td><td>Незадовільно</td><td>Індивідуальний варіант не розраховано, висновок відсутній.</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ========== 2. ТЕОРІЯ ========== -->
+<section class="step">
+  <div class="stepnum">Розділ 2<br>Теорія</div>
+  <div class="stepbody">
+    <h2>Теоретичні основи моделювання тарифів автотранспорту</h2>
+    <p class="sub">Тут пояснено кожну формулу, яку далі використовує програма. Якщо ви розумієте цей розділ — решта роботи буде зрозумілою повністю.</p>
+
+    <h3>2.1. Лінійна (арифметична) модель підвищення тарифу</h3>
+    <p>Це спрощений підхід: річну інфляцію витрат просто ділять на 12 рівних частин.</p>
+    <div class="formula">r<sub>m_linear</sub> = I / 12<span class="lbl">щомісячний темп підвищення тарифу</span></div>
+    <p>Тоді тариф у будь-якому місяці <span class="f">t</span> обчислюється так:</p>
+    <div class="formula">P<sub>linear</sub>(t) = P₀ · [ 1 + (I / 12) · (t − 1) ]<span class="lbl">лінійна модель</span></div>
+    <ul>
+      <li><b>P₀</b> — початковий (базовий) тариф автоперевізника в першому місяці, грн/км.</li>
+      <li><b>I</b> — річна інфляція витрат у вигляді десяткового дробу (24 % → 0.24).</li>
+      <li><b>t</b> — номер місяця від початку контракту, t = 1, 2, 3, …, 60.</li>
+      <li><b>(t − 1)</b> — кількість місяців, що вже минули. У першому місяці (1 − 1) = 0, тому інфляція ще не додається і тариф дорівнює базовому.</li>
+    </ul>
+    <div class="box soft">
+      <h4>Приклад «на пальцях»</h4>
+      <p>Нехай P₀ = 100 грн/км, річна інфляція дизелю та запчастин I = 24 % (0.24).</p>
+      <p>Щомісячний приріст: r = 0.24 / 12 = 0.02, тобто 2 % від початкового тарифу щомісяця.</p>
+      <p>Місяць 1: P = 100 · [1 + 0.02 · 0] = <b>100 грн/км</b><br>
+         Місяць 2: P = 100 · [1 + 0.02 · 1] = <b>102 грн/км</b><br>
+         Місяць 13: P = 100 · [1 + 0.02 · 12] = 100 · 1.24 = <b>124 грн/км</b></p>
+      <p>Тариф щомісяця зростає на одну й ту саму фіксовану суму — рівно на 2 грн. Модель проста, але вона <b>не враховує складний відсоток</b>, і саме тут криється похибка.</p>
+    </div>
+
+    <h3>2.2. Геометрична (складна) модель підвищення тарифу</h3>
+    <p>Ця модель фінансово та математично точна. Вона враховує ефект капіталізації відсотків — «відсоток на відсоток»: у кожному наступному місяці інфляція нараховується не на початкову ціну P₀, а на вже підвищений тариф попереднього місяця.</p>
+    <p>Оскільки інфляція нараховується складним відсотком, річну ставку не можна просто поділити на 12. Потрібна така щомісячна ставка, яка за 12 місяців послідовного множення дасть рівно річну інфляцію:</p>
+    <div class="formula">r<sub>m_geom</sub> = (1 + I)<sup>1/12</sup> − 1<span class="lbl">еквівалентна щомісячна ставка</span></div>
+    <div class="formula">P<sub>geom</sub>(t) = P₀ · (1 + r<sub>m_geom</sub>)<sup>t−1</sup> = P₀ · (1 + I)<sup>(t−1)/12</sup><span class="lbl">наскрізний розрахунок через річну ставку</span></div>
+    <div class="box soft">
+      <h4>Той самий приклад, але геометрично</h4>
+      <p>P₀ = 100 грн/км, I = 24 %.</p>
+      <p>Щомісячна ставка: (1.24)<sup>1/12</sup> − 1 ≈ 0.018087, тобто <b>1.81 % на місяць</b>. Зверніть увагу: за лінійною моделлю було 2 % на місяць, за геометричною — трохи менше, але через складний відсоток за 12 місяців вона дасть рівно 24 %.</p>
+      <p>Місяць 2: 100 · 1.018087 = <b>101.81 грн/км</b><br>
+         Місяць 13: 100 · (1.24)<sup>1</sup> = <b>124.00 грн/км</b> — обидві моделі в кінці першого року збігаються, бо річна інфляція однакова.<br>
+         Місяць 61: 100 · (1.24)<sup>5</sup> ≈ <b>293.16 грн/км</b>, тоді як лінійна дає лише 100 · [1 + 0.02 · 60] = <b>220.00 грн/км</b>.</p>
+    </div>
+    <div class="box alert">
+      <p><b>Головний висновок і сутність ІТ-аналізу.</b> На 5-му році контракту різниця становить 73.16 грн на кожному кілометрі — похибка понад 33 %. Якщо логістична компанія закладе у свій довгостроковий бюджет лінійний розрахунок, вона не зможе покрити реальні витрати на автоперевезення: виникне касовий розрив і загроза зупинки поставок.</p>
+    </div>
+
+    <h3>2.3. Сукупні витрати та точка кросоверу</h3>
+    <p>Якщо підприємство щомісяця виконує стабільний обсяг перевезень V (кілометри, рейси або тонни), то загальний логістичний бюджет місяця t дорівнює:</p>
+    <div class="formula">TC(t) = V · P(t)<span class="lbl">сукупні логістичні витрати, грн/місяць</span></div>
+    <p><b>Точка кросоверу (точка зміни економічної ефективності)</b> — це конкретний місяць t*, у якому тарифи обох автоперевізників зрівнюються: P₁(t*) = P₂(t*). Підставимо геометричну модель для обох альтернатив:</p>
+    <div class="formula">P<sub>1,0</sub> · (1 + I₁)<sup>(t*−1)/12</sup> = P<sub>2,0</sub> · (1 + I₂)<sup>(t*−1)/12</sup></div>
+    <p>Згрупуємо інфляційні показники з одного боку та прологарифмуємо обидві частини натуральним логарифмом:</p>
+    <div class="formula">[ (t* − 1) / 12 ] · ln( (1 + I₁) / (1 + I₂) ) = ln( P<sub>2,0</sub> / P<sub>1,0</sub> )</div>
+    <p>Звідси отримуємо підсумкову аналітичну формулу дати кросоверу:</p>
+    <div class="formula" style="font-size:17px">t* = 1 + 12 · ln( P<sub>2,0</sub> / P<sub>1,0</sub> ) ⁄ ln( (1 + I₁) / (1 + I₂) )<span class="lbl">точний місяць, у якому вартість перевезення обома варіантами стає однаковою</span></div>
+    <div class="box hint">
+      <h4>Як це читати з погляду управління</h4>
+      <p>До місяця t* дешевшою є Альтернатива 1 — саме з нею вигідно працювати за короткостроковим контрактом. Після t* через високу інфляцію витрат вона стрімко дорожчає, і Альтернатива 2 стає значно вигіднішою. Якщо контракт укладається на 5 років, перехід треба або передбачити в договорі заздалегідь, або одразу обирати другу альтернативу.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3. ВАРІАНТ ========== -->
+<section class="step">
+  <div class="stepnum">Розділ 3<br>Варіант</div>
+  <div class="stepbody">
+    <h2>Отримання індивідуального варіанта</h2>
+    <p class="sub">Варіант генерується випадково, але прив'язано до ваших даних: ПІБ і група перетворюються на числовий ключ, з якого формуються сценарій, базові тарифи та рівні інфляції. Кількість можливих комбінацій — понад мільйон, тому однакові варіанти у групі практично виключені. Ті самі дані завжди дають той самий варіант, тож роботу можна відтворити й перевірити.</p>
+    <div class="form">
+      <div>
+        <label for="pib">Прізвище, ім'я, по батькові</label>
+        <input type="text" id="pib" autocomplete="name" placeholder="Коваленко Андрій Петрович">
+      </div>
+      <div>
+        <label for="grp">Група</label>
+        <input type="text" id="grp" placeholder="КБ-41">
+      </div>
+    </div>
+    <button class="btn" id="genBtn" type="button">Отримати індивідуальне завдання</button>
+    <div class="err" id="genErr"></div>
+
+    <div id="variantBlock" hidden>
+      <div class="variantbar" style="margin-top:22px">
+        <span class="no" id="vNo">—</span>
+        <span class="cat" id="vCat">—</span>
+        <span class="who" id="vWho">—</span>
+      </div>
+      <p id="vDesc" class="sub"></p>
+      <div class="alts">
+        <div class="alt one">
+          <div class="tag">Альтернатива 1 — дешевша на старті</div>
+          <div class="nm" id="a1Name">—</div>
+          <dl>
+            <dt>Базовий тариф P₁,₀</dt><dd id="a1P">—</dd>
+            <dt>Річна інфляція витрат I₁</dt><dd id="a1I">—</dd>
+          </dl>
+        </div>
+        <div class="alt two">
+          <div class="tag">Альтернатива 2 — стабільніша</div>
+          <div class="nm" id="a2Name">—</div>
+          <dl>
+            <dt>Базовий тариф P₂,₀</dt><dd id="a2P">—</dd>
+            <dt>Річна інфляція витрат I₂</dt><dd id="a2I">—</dd>
+          </dl>
+        </div>
+      </div>
+      <p style="margin-top:14px;color:var(--ink-2);font-size:15px">Щомісячний обсяг перевезень: <b>V = 1000 км/місяць</b>. Горизонт планування: <b>60 місяців</b>. Тарифи наведено в гривнях за кілометр пробігу.</p>
+      <div class="box hint">
+        <p><b>Запишіть ці дані у звіт.</b> Саме з ними ви працюватимете до кінця роботи. Код варіанта у лівому куті плашки — ваш ідентифікатор, назвіть його викладачу під час захисту.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 4. ПРОГНОЗ ========== -->
+<section class="step" id="stepPredict" hidden>
+  <div class="stepnum">Розділ 4<br>Ваш прогноз</div>
+  <div class="stepbody">
+    <h2>Спочатку подумайте, потім рахуйте</h2>
+    <p class="sub">Перш ніж програма щось обчислить, зафіксуйте власну гіпотезу. Дайте відповідь на три питання, спираючись на дані свого варіанта та теорію з розділу 2. Після моделювання ви побачите, наскільки ваша інтуїція збіглася з математикою.</p>
+    <div id="predictBox"></div>
+    <button class="btn" id="runBtn" type="button" disabled>Виконати моделювання</button>
+    <span class="status" id="predictStatus" style="margin-left:12px">Дайте відповідь на всі три питання</span>
+  </div>
+</section>
+
+<!-- ========== 5. РЕЗУЛЬТАТИ ========== -->
+<section class="step" id="stepResults" hidden>
+  <div class="stepnum">Розділ 5<br>Результати</div>
+  <div class="stepbody">
+    <h2>Результати моделювання</h2>
+    <div id="predictFeedback"></div>
+
+    <h3>Ключові показники вашого варіанта</h3>
+    <div class="kpis">
+      <div class="kpi cross"><div class="k">Точка кросоверу t*</div><div class="v" id="kCross">—</div><div class="u" id="kCrossU">місяць</div></div>
+      <div class="kpi"><div class="k">Тариф у точці кросоверу</div><div class="v" id="kPrice">—</div><div class="u">грн/км</div></div>
+      <div class="kpi warn"><div class="k">Заниження тарифу лінійною моделлю, 60-й місяць</div><div class="v" id="kGap">—</div><div class="u">грн/км</div></div>
+      <div class="kpi warn"><div class="k">Дефіцит бюджету</div><div class="v" id="kGapP">—</div><div class="u" id="kGapPU">% на 60-му місяці</div></div>
+      <div class="kpi"><div class="k">Економія на Альтернативі 2 у 60-му місяці</div><div class="v" id="kSave">—</div><div class="u">тис. грн/місяць</div></div>
+    </div>
+
+    <h3>Помісячна таблиця розрахунків</h3>
+    <p class="sub">Зеленим виділено рядок точки кросоверу. Прокрутіть таблицю, щоб побачити всі 60 місяців.</p>
+    <div class="tablewrap">
+      <table class="data" id="tbl">
+        <thead><tr>
+          <th>Місяць t</th>
+          <th>P₁ геом., грн/км</th>
+          <th>P₂ геом., грн/км</th>
+          <th>TC₁, тис. грн</th>
+          <th>TC₂, тис. грн</th>
+          <th>P₁ лінійн., грн/км</th>
+          <th>Похибка, грн/км</th>
+          <th>Похибка, %</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3>Графік 1. Порівняльна динаміка тарифів автоперевізників</h3>
+    <div class="chart">
+      <p class="cap">Зміна тарифної ставки за 1 км пробігу протягом 60 місяців за точною геометричною моделлю для обох альтернатив. Вертикальна лінія — точка кросоверу.</p>
+      <div class="cbox"><canvas id="ch1"></canvas></div>
+    </div>
+    <div class="box" id="an1"></div>
+
+    <h3>Графік 2. Сукупні щомісячні логістичні витрати</h3>
+    <div class="chart">
+      <p class="cap">Реальний щомісячний бюджет підприємства на автоперевезення при стабільному обсязі V = 1000 км/місяць: TC(t) = V · P(t).</p>
+      <div class="cbox"><canvas id="ch2"></canvas></div>
+    </div>
+    <div class="box" id="an2"></div>
+
+    <h3>Графік 3. Похибка лінійного планування для Альтернативи 1</h3>
+    <div class="chart">
+      <p class="cap">Прогноз тарифу за точною геометричною моделлю проти спрощеної лінійної моделі. Відстань між кривими — це гроші, яких не буде в бюджеті.</p>
+      <div class="cbox"><canvas id="ch3"></canvas></div>
+    </div>
+    <div class="box" id="an3"></div>
+
+    <h3>Графік 4. Динаміка відносної похибки лінійної моделі</h3>
+    <div class="chart">
+      <p class="cap">Відсоток дефіциту логістичного бюджету, який виникає при спрощеному арифметичному плануванні: (P<sub>geom</sub> − P<sub>linear</sub>) / P<sub>geom</sub> · 100 %.</p>
+      <div class="cbox"><canvas id="ch4"></canvas></div>
+    </div>
+    <div class="box" id="an4"></div>
+  </div>
+</section>
+
+<!-- ========== 6. ВИБІР КОНТРАКТУ ========== -->
+<section class="step" id="stepContract" hidden>
+  <div class="stepnum">Розділ 6<br>Рішення</div>
+  <div class="stepbody">
+    <h2>Прийміть управлінське рішення</h2>
+    <p class="sub">Ви — логіст підприємства. Оберіть термін, на який плануєте укласти договір, і подивіться, який перевізник виявиться дешевшим саме на цьому горизонті за сумарними витратами. Спробуйте різні терміни й порівняйте.</p>
+    <div class="qcard">
+      <div class="q">На який термін ви укладаєте договір з автоперевізником?</div>
+      <div class="opts" id="termOpts"></div>
+      <div id="termResult" style="margin-top:16px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 7. ЧУТЛИВІСТЬ ========== -->
+<section class="step" id="stepSens" hidden>
+  <div class="stepnum">Розділ 7<br>Чутливість</div>
+  <div class="stepbody">
+    <h2>Аналіз чутливості до інфляційних коливань</h2>
+    <p class="sub">Інфляція витрат другого перевізника — величина прогнозна, вона може виявитися іншою. Змінюйте її в діапазоні від 10 % до 25 % і спостерігайте, як зсувається точка кросоверу. Зберігайте цікаві сценарії кнопкою нижче — вони накопичуються в таблиці порівняння.</p>
+
+    <div class="slider">
+      <input type="range" id="i2Range" min="10" max="25" step="0.5" value="12">
+      <div class="sliderval" id="i2Val">12.0 %</div>
+    </div>
+    <p style="font-size:14px;color:var(--ink-2)">Базове значення вашого варіанта: <span class="f" id="i2Base">—</span>. Решта параметрів незмінні.</p>
+
+    <div class="kpis">
+      <div class="kpi cross"><div class="k">Нова точка кросоверу</div><div class="v" id="sCross">—</div><div class="u" id="sCrossU">місяць</div></div>
+      <div class="kpi"><div class="k">Зсув відносно базового сценарію</div><div class="v" id="sShift">—</div><div class="u">місяців</div></div>
+      <div class="kpi"><div class="k">Тариф Альт. 2 на 60-му місяці</div><div class="v" id="sP60">—</div><div class="u">грн/км</div></div>
+      <div class="kpi"><div class="k">Сумарні витрати на Альт. 2 за 5 років</div><div class="v" id="sSum">—</div><div class="u">млн грн</div></div>
+    </div>
+
+    <div class="chart">
+      <h4>Графік 5. Залежність точки кросоверу від інфляції другої альтернативи</h4>
+      <p class="cap">Точка на кривій — поточне положення повзунка. Чим ближча інфляція другого перевізника до інфляції першого, тим пізніше настає кросовер і тим менш очевидним стає вибір.</p>
+      <div class="cbox"><canvas id="ch5"></canvas></div>
+    </div>
+
+    <div class="actions" style="margin-bottom:18px">
+      <button class="btn sm" id="saveScenario" type="button">Зберегти сценарій у порівняння</button>
+      <button class="btn sm ghost" id="clearScenarios" type="button">Очистити таблицю</button>
+      <span class="status" id="scenStatus"></span>
+    </div>
+    <div id="scenWrap" hidden>
+      <div class="tablewrap" style="max-height:none">
+        <table class="data" id="scenTbl">
+          <thead><tr>
+            <th>Сценарій</th><th>I₂, %</th><th>t*, міс.</th><th>Тариф у t*, грн/км</th>
+            <th>P₂ на 60-му, грн/км</th><th>Витрати за 5 років, млн грн</th><th>Різниця з базовим</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="box hint" style="margin-top:14px">
+        <p>Порівняйте рядки таблиці й дайте відповідь у висновку: <b>наскільки стійким є ваше рішення?</b> Якщо кросовер зсувається на кілька місяців — рішення надійне. Якщо він виходить за межі 60 місяців при незначній зміні інфляції — вибір другої альтернативи втрачає сенс, і в договорі потрібне застереження про перегляд тарифу.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 8. КОНТРОЛЬНІ ПИТАННЯ ========== -->
+<section class="step" id="stepQuiz" hidden>
+  <div class="stepnum">Розділ 8<br>Захист</div>
+  <div class="stepbody">
+    <h2>Контрольні питання для захисту роботи</h2>
+    <p class="sub">П'ять питань за матеріалом роботи. Оберіть відповідь — і одразу отримаєте пояснення. Результат потрапляє у звіт.</p>
+    <div id="quizBox"></div>
+    <div class="score" id="quizScore"></div>
+  </div>
+</section>
+
+<!-- ========== 9. ВИСНОВОК ========== -->
+<section class="step" id="stepConcl" hidden>
+  <div class="stepnum">Розділ 9<br>Звіт</div>
+  <div class="stepbody">
+    <h2>Висновок і збереження звіту</h2>
+    <p class="sub">Сформулюйте висновок за результатами моделювання. Мінімум 40 символів. Кнопка «Підставити шаблон» вставить заготовку з вашими числами — доповніть її власними міркуваннями, не залишайте шаблон без змін.</p>
+    <button class="btn sm ghost" id="tplBtn" type="button" style="margin-bottom:12px">Підставити шаблон висновку</button>
+    <label for="concl">Висновок студента</label>
+    <textarea id="concl" placeholder="За результатами комп'ютерного моделювання встановлено, що точка зміни економічної ефективності автоперевізників настає у ... місяці. До цього терміну доцільно працювати з Альтернативою 1, після чого слід перейти на Альтернативу 2. Також доведено, що використання спрощених лінійних формул призводить до накопичення похибки розрахунку бюджету на рівні ... %, тому в корпоративних інформаційних системах необхідно застосовувати виключно геометричну модель капіталізації тарифів. Аналіз чутливості показав, що ..."></textarea>
+    <div class="counter" id="cnt">0 символів — мінімум 40</div>
+    <div class="actions">
+      <button class="btn" id="pdfBtn" type="button" disabled>Зберегти звіт у PDF</button>
+      <button class="btn ghost" id="printBtn" type="button">Друк через браузер</button>
+      <span class="status" id="pdfStatus"></span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>Харківський національний автомобільно-дорожній університет · кафедра кібербезпеки<br>Практична робота №2 з дисципліни «Комп'ютерні системи у логістиці»</div>
+  <div style="text-align:right">Розробила: <b>Крайнюк Олена</b></div>
+</footer>
+
+</div>
+
+<div id="offstage" aria-hidden="true"></div>
+<div id="printzone" aria-hidden="true"></div>
+
+<script>
+"use strict";
+
+/* ===================== СТАЛІ ===================== */
+const MONTHS = 60;
+const V_VOL = 1000; // км/місяць
+
+/* ===================== СЦЕНАРІЇ ===================== */
+const SCENARIOS = [
+ {cat:"Магістральні перевезення", a1:"Дизельні автопоїзди (20 т)", a2:"Електровантажівки (Tesla / Volvo)",
+  desc:"Підприємство перевозить готову продукцію магістральними маршрутами. Дизельний парк дешевший на старті, але його витрати зростають через подорожчання пального та екологічні збори; електровантажівки дорожчі, проте вартість електроенергії зафіксована довгостроковим договором."},
+ {cat:"Власний парк проти аутсорсингу", a1:"Власний вантажний автопарк", a2:"Аутсорсинг перевізника (3PL)",
+  desc:"Розглядається передавання транспортної функції зовнішньому оператору. Власний парк не має націнки підрядника, але повністю приймає на себе зростання витрат на ремонти, зарплати водіїв і лізинг. 3PL-оператор працює за контрактною формулою індексації."},
+ {cat:"Партіонність відправлень", a1:"Великотонажні фури FTL (20 т)", a2:"Малотонажні авто LTL (3.5 т)",
+  desc:"Порівнюються повнокомплектні відправлення та збірні вантажі. FTL дешевший у перерахунку на кілометр, але сильніше залежить від пального та ваги; LTL дорожчий, проте його витрати зростають повільніше."},
+ {cat:"Автоматизація перевезень", a1:"Традиційні авто з водіями", a2:"Автономні вантажівки (AI)",
+  desc:"Оцінюється перехід на безпілотний транспорт. Основний драйвер підвищення тарифу першої альтернативи — зростання оплати праці водіїв та дефіцит кадрів. Автономний парк дорожчий через амортизацію обладнання, але майже не залежить від зарплат."},
+ {cat:"Температурний режим", a1:"Авторефрижератори", a2:"Ізотермічні автофургони з хладоелементами",
+  desc:"Перевезення харчової продукції з підтриманням температури. Рефрижератор витрачає пальне на холодильну установку, ізотермічний кузов працює на акумуляторах холоду й дешевший в експлуатації, але дорожчий у ставці."},
+ {cat:"Вибір дорожньої мережі", a1:"Маршрут платними автомагістралями (Toll Roads)", a2:"Безкоштовні альтернативні автошляхи",
+  desc:"Порівнюються два маршрути. Платні автобани коротші за часом, але тарифи проїзду зростають швидко; безкоштовні шляхи довші й спричиняють більший знос, проте не залежать від підвищення дорожніх зборів."},
+ {cat:"Міська дистрибуція (Last-Mile)", a1:"Міські дизельні фургони", a2:"Міські електрофургони",
+  desc:"Доставка в роздрібні точки в межах міста. Дизельні фургони потрапляють під зони низьких викидів і штрафи, електрофургони дорожчі у придбанні, але звільнені від більшості міських зборів."},
+ {cat:"Швидкість доставки", a1:"Експрес-автодоставка (два водії)", a2:"Стандартна автодоставка (один водій)",
+  desc:"Експрес-схема з двома водіями скорочує час доставки, але подвоює чутливість до зростання оплати праці. Стандартна схема повільніша й дорожча за ставкою через простої, проте стабільніша."},
+ {cat:"Наливні вантажі", a1:"Вантажні автоцистерни", a2:"Контейнеровози з Flexitank",
+  desc:"Перевезення наливних вантажів. Автоцистерни потребують спеціального обслуговування та миття, Flexitank у контейнері дорожчий за рахунок вкладиша, але його експлуатаційні витрати передбачувані."},
+ {cat:"Перевезення автомобілів", a1:"Відкриті автовози", a2:"Криті спеціалізовані автовози",
+  desc:"Доставка легкових автомобілів дилерам. Відкриті автовози дешевші, але ризики пошкоджень і страхові платежі зростають швидше; криті автовози дорожчі, зате страхування стабільне."},
+ {cat:"Кар'єрні перевезення", a1:"Автосамоскиди кар'єрні", a2:"Тягачі з самоскидними напівпричепами",
+  desc:"Вивезення інертних матеріалів. Кар'єрні самоскиди мають вищий знос ходової та шин, тягачі з напівпричепами дорожчі у ставці, але дешевші в утриманні на довгому плечі."},
+ {cat:"Поштова логістика", a1:"Кур'єрські авто малого класу", a2:"Магістральні поштові автопоїзди",
+  desc:"Порівнюється дрібнокур'єрська розвозка та консолідована магістральна доставка. Кур'єрські авто дешеві на короткому плечі, але їх витрати на кілометр зростають найшвидше."},
+ {cat:"Тип палива тягача", a1:"Автотягачі на газу (CNG / LNG)", a2:"Дизельні автотягачі Євро-6",
+  desc:"Газові тягачі дешевші в експлуатації сьогодні, проте ціна газу волатильна; дизельні Євро-6 дорожчі, але мають передбачувану вартість обслуговування та розвинену сервісну мережу."},
+ {cat:"Міжнародні перевезення", a1:"Міжнародна автодоставка за книжкою TIR", a2:"Міжнародна автодоставка в системі NCTS",
+  desc:"Порівнюються дві митні процедури транзиту. TIR простіший, але вартість гарантій зростає; NCTS вимагає більших початкових витрат на електронне оформлення, зате подальші витрати стабільні."},
+ {cat:"Негабаритні вантажі", a1:"Негабаритні автоплатформи", a2:"Модульні автоплатформи (SPMT)",
+  desc:"Перевезення великогабаритного обладнання. Звичайні платформи дешевші, але потребують складних погоджень і супроводу; модульні SPMT дорожчі, проте скорочують кількість дозволів і простоїв."},
+ {cat:"Агрологістика", a1:"Спотове замовлення зерновозів", a2:"Контракт із транспортним пулом агрохолдингу",
+  desc:"Сезонні перевезення зерна. Спотовий ринок дешевший поза піком, але в сезон ставки злітають; контракт із пулом дорожчий, зате тариф прогнозований."},
+ {cat:"Небезпечні вантажі", a1:"Перевізник із базовим допуском ADR", a2:"Спеціалізований оператор ADR із власним страховим пулом",
+  desc:"Вантаж підпадає під вимоги ADR. Базовий допуск дешевший, але страхові премії та вимоги до водіїв дорожчають найшвидше; спеціалізований оператор закладає ризики у стабільну ставку."},
+ {cat:"Контейнерний дрейдж", a1:"Місцеві перевізники за спотовою ставкою", a2:"Контрактний оператор із гарантованим вікном подачі",
+  desc:"Доставка контейнерів від морського терміналу до складу. Спот дешевший, але залежить від завантаження порту; контракт дорожчий і передбачає фіксовану формулу підвищення."},
+ {cat:"Мультимодальність", a1:"Суто автомобільне плече", a2:"Мультимодальна схема з залізничним плечем",
+  desc:"Частину маршруту можна передати на залізницю. Автомобільний варіант гнучкіший і дешевший зараз, мультимодальний дорожчий, проте менш чутливий до ціни дизелю."},
+ {cat:"Екологічне регулювання", a1:"Змішаний парк Євро-4/5", a2:"Парк Євро-6 зі зниженим CO₂-збором",
+  desc:"Маршрут перетинає зони з платою за викиди. Старіший парк дешевший у ставці, але екологічні збори для нього зростають випереджально; Євро-6 дорожчий, зате збори мінімальні."},
+ {cat:"Складська логістика", a1:"Перевезення з проміжним перевантаженням", a2:"Крос-докінг без зберігання",
+  desc:"Порівнюються схеми з проміжним складом і без нього. Схема зі складом дешевша за ставкою перевезення, але витрати на обробку зростають; крос-докінг дорожчий, проте виключає складські витрати."},
+ {cat:"Форма оплати праці", a1:"Водії на відрядній оплаті", a2:"Водії у штаті з фіксованим окладом",
+  desc:"Відрядна оплата дешевша при низькому завантаженні, але зростає разом із ринковими ставками; штатні водії дорожчі, зате витрати передбачувані й індексуються повільніше."},
+ {cat:"Стратегія оновлення парку", a1:"Експлуатація вживаних тягачів", a2:"Лізинг нових тягачів",
+  desc:"Вживаний парк дешевший, але витрати на ремонти та простої зростають лавиноподібно; новий парк у лізингу дорожчий у ставці, проте перебуває на гарантії."},
+ {cat:"Регіональне покриття", a1:"Мережа дрібних регіональних перевізників", a2:"Національний перевізник із єдиним тарифом",
+  desc:"Дрібні перевізники дешевші, але кожен індексує тариф самостійно й непередбачувано; національний оператор дорожчий, зате має єдину прозору формулу підвищення."}
+];
+
+/* ===================== ГЕНЕРАТОР ВАРІАНТА ===================== */
+function normalize(s){return s.toLowerCase().replace(/[’'`ʼ]/g,"'").replace(/\s+/g," ").trim();}
+function fnv1a(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function makeVariant(pib, grp){
+  const seed = fnv1a(normalize(pib) + "|" + normalize(grp));
+  const rnd = mulberry32(seed);
+  const sc = SCENARIOS[Math.floor(rnd() * SCENARIOS.length)];
+
+  // базовий тариф 100…250 грн/км із кроком 2.5
+  const P1 = Math.round((100 + rnd() * 150) / 2.5) * 2.5;
+  // інфляція першої альтернативи 22…39 %, другої 10…19 %
+  const I1 = Math.round((22 + rnd() * 17) * 10) / 1000;
+  const I2 = Math.round((10 + rnd() * 9) * 10) / 1000;
+  // цільовий кросовер 15…47 місяць → звідси базовий тариф другої альтернативи
+  const tTarget = 15 + Math.floor(rnd() * 33);
+  const P2 = Math.round(P1 * Math.pow((1 + I1) / (1 + I2), (tTarget - 1) / 12) * 100) / 100;
+
+  const code = "В-" + String(seed % 9000 + 1000);
+  return {code, cat:sc.cat, desc:sc.desc,
+    a1:{name:sc.a1, P:P1, I:I1},
+    a2:{name:sc.a2, P:P2, I:I2}};
+}
+
+/* ===================== МОДЕЛЬ ===================== */
+const geom = (P0,I,t) => P0 * Math.pow(1+I,(t-1)/12);
+const linr = (P0,I,t) => P0 * (1 + (I/12)*(t-1));
+
+function crossMonth(P1,I1,P2,I2){
+  const d = Math.log((1+I1)/(1+I2));
+  if(Math.abs(d) < 1e-12) return null;
+  const t = 1 + 12 * Math.log(P2/P1) / d;
+  return isFinite(t) ? t : null;
+}
+
+function buildModel(v){
+  const m = {t:[],p1:[],p2:[],p1lin:[],tc1:[],tc2:[],gap:[],gapPct:[]};
+  for(let t=1;t<=MONTHS;t++){
+    const p1 = geom(v.a1.P,v.a1.I,t), p2 = geom(v.a2.P,v.a2.I,t), pl = linr(v.a1.P,v.a1.I,t);
+    m.t.push(t); m.p1.push(p1); m.p2.push(p2); m.p1lin.push(pl);
+    m.tc1.push(V_VOL*p1); m.tc2.push(V_VOL*p2);
+    m.gap.push(p1-pl);
+    m.gapPct.push((p1-pl)/p1*100);
+  }
+  m.tStar = crossMonth(v.a1.P,v.a1.I,v.a2.P,v.a2.I);
+  m.pStar = m.tStar !== null ? geom(v.a1.P,v.a1.I,m.tStar) : null;
+  m.sum1 = m.tc1.reduce((a,b)=>a+b,0);
+  m.sum2 = m.tc2.reduce((a,b)=>a+b,0);
+  return m;
+}
+function cumCost(P0,I,n){let s=0;for(let t=1;t<=n;t++)s+=V_VOL*geom(P0,I,t);return s;}
+
+/* ===================== ФОРМАТ ===================== */
+const nf=(x,d=2)=>new Intl.NumberFormat("uk-UA",{minimumFractionDigits:d,maximumFractionDigits:d}).format(x);
+const pc=(x,d=1)=>nf(x,d)+" %";
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ===================== СТАН ===================== */
+const S = {pib:"", grp:"", v:null, m:null, charts:{}, predict:{}, term:null,
+           scenarios:[], i2:null, quiz:{answers:{}, correct:0}};
+
+/* ===================== ЗАВАНТАЖЕННЯ ФАЙЛІВ (downloads capability) ===================== */
+let downloadsApi = null, downloadsChecked = false;
+async function getDownloads(){
+  if(downloadsChecked) return downloadsApi;
+  downloadsChecked = true;
+  try{
+    if(window.claude && typeof window.claude.use === "function"){
+      downloadsApi = await window.claude.use("downloads");
+    }
+  }catch(e){ downloadsApi = null; }
+  return downloadsApi;
+}
+async function saveFile(filename, blob){
+  const api = await getDownloads();
+  if(api){
+    await api.save({filename, data: blob});
+    return "saved";
+  }
+  // Автономний HTML-файл поза середовищем артефактів: звичайне завантаження браузером.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return "saved";
+}
+
+/* ===================== ТЕМА ===================== */
+const themeBtn = document.getElementById("themeBtn");
+const curTheme = () => document.documentElement.getAttribute("data-theme") ||
+  (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+function syncTheme(){themeBtn.textContent = curTheme()==="dark" ? "Світла тема" : "Темна тема";}
+themeBtn.addEventListener("click",()=>{
+  document.documentElement.setAttribute("data-theme", curTheme()==="dark"?"light":"dark");
+  syncTheme(); if(S.m){drawMain(); drawSens();}
+});
+syncTheme();
+
+/* ===================== КРОК: ВАРІАНТ ===================== */
+document.getElementById("genBtn").addEventListener("click",()=>{
+  const pib=document.getElementById("pib").value.trim();
+  const grp=document.getElementById("grp").value.trim();
+  const err=document.getElementById("genErr");
+  if(pib.replace(/\s+/g," ").split(" ").filter(Boolean).length<2){
+    err.textContent="Введіть прізвище та ім'я — принаймні два слова."; document.getElementById("pib").focus(); return;}
+  if(!grp){err.textContent="Вкажіть шифр групи."; document.getElementById("grp").focus(); return;}
+  err.textContent="";
+  S.pib=pib; S.grp=grp; S.v=makeVariant(pib,grp); S.m=null;
+  S.predict={}; S.term=null; S.scenarios=[]; S.quiz={answers:{},correct:0};
+
+  const v=S.v;
+  document.getElementById("vNo").textContent=v.code;
+  document.getElementById("vCat").textContent=v.cat;
+  document.getElementById("vWho").textContent=pib+" · група "+grp;
+  document.getElementById("vDesc").textContent=v.desc;
+  document.getElementById("a1Name").textContent=v.a1.name;
+  document.getElementById("a1P").textContent=nf(v.a1.P)+" грн/км";
+  document.getElementById("a1I").textContent=pc(v.a1.I*100);
+  document.getElementById("a2Name").textContent=v.a2.name;
+  document.getElementById("a2P").textContent=nf(v.a2.P)+" грн/км";
+  document.getElementById("a2I").textContent=pc(v.a2.I*100);
+  document.getElementById("variantBlock").hidden=false;
+
+  buildPredict();
+  document.getElementById("stepPredict").hidden=false;
+  ["stepResults","stepContract","stepSens","stepQuiz","stepConcl"].forEach(id=>document.getElementById(id).hidden=true);
+  document.getElementById("variantBlock").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+/* ===================== ПРОГНОЗ ===================== */
+const PREDICT_Q = [
+  {id:"p1", q:"Яка альтернатива дешевша в перший місяць контракту?",
+   opts:["Альтернатива 1","Альтернатива 2","Однаково"]},
+  {id:"p2", q:"У якому діапазоні, на вашу думку, лежить точка кросоверу t*?",
+   opts:["до 12-го місяця","13–24-й місяць","25–40-й місяць","41–60-й місяць","пізніше 60-го"]},
+  {id:"p3", q:"Наскільки лінійна модель занизить тариф Альтернативи 1 у 60-му місяці?",
+   opts:["менш ніж на 5 %","на 5–15 %","на 15–30 %","більш ніж на 30 %"]}
+];
+function buildPredict(){
+  const box=document.getElementById("predictBox"); box.innerHTML="";
+  PREDICT_Q.forEach(q=>{
+    const d=document.createElement("div"); d.className="qcard";
+    d.innerHTML='<div class="q">'+q.q+'</div><div class="opts"></div>';
+    const o=d.querySelector(".opts");
+    q.opts.forEach((txt,i)=>{
+      const b=document.createElement("button");
+      b.type="button"; b.className="opt"; b.textContent=txt; b.setAttribute("aria-pressed","false");
+      b.addEventListener("click",()=>{
+        o.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed","false"));
+        b.setAttribute("aria-pressed","true");
+        S.predict[q.id]=i; checkPredict();
+      });
+      o.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+  checkPredict();
+}
+function checkPredict(){
+  const done = PREDICT_Q.every(q=>S.predict[q.id]!==undefined);
+  document.getElementById("runBtn").disabled=!done;
+  document.getElementById("predictStatus").textContent = done
+    ? "Прогноз зафіксовано — можна рахувати"
+    : "Дайте відповідь на всі три питання";
+}
+
+/* ===================== ЗАПУСК ===================== */
+document.getElementById("runBtn").addEventListener("click",()=>{
+  S.m=buildModel(S.v);
+  renderPredictFeedback();
+  renderKPI(); renderTable(); drawMain(); renderAnalysis();
+  buildTermOpts(); buildQuiz(); initSens();
+  ["stepResults","stepContract","stepSens","stepQuiz","stepConcl"].forEach(id=>document.getElementById(id).hidden=false);
+  validateConcl();
+  document.getElementById("stepResults").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+function renderPredictFeedback(){
+  const m=S.m, v=S.v;
+  const right1 = v.a1.P < v.a2.P ? 0 : (v.a1.P > v.a2.P ? 1 : 2);
+  const t=m.tStar;
+  let right2;
+  if(t===null||t>60) right2=4; else if(t<=12) right2=0; else if(t<=24) right2=1; else if(t<=40) right2=2; else right2=3;
+  const e=m.gapPct[MONTHS-1];
+  let right3; if(e<5) right3=0; else if(e<15) right3=1; else if(e<30) right3=2; else right3=3;
+  const rights=[right1,right2,right3];
+  let ok=0;
+  const rows=PREDICT_Q.map((q,i)=>{
+    const mine=S.predict[q.id], good=mine===rights[i]; if(good) ok++;
+    return "<tr><td>"+q.q+"</td><td>"+esc(q.opts[mine])+"</td><td>"+esc(q.opts[rights[i]])+"</td><td style='color:"+
+      (good?"var(--cross)":"var(--a1)")+";font-weight:600'>"+(good?"вірно":"хибно")+"</td></tr>";
+  }).join("");
+  S.predict.score=ok;
+  document.getElementById("predictFeedback").innerHTML =
+    '<div class="box '+(ok===3?"hint":"alert")+'"><h4>Перевірка вашого прогнозу: '+ok+' з 3</h4>'+
+    '<table class="plain"><tr><th>Питання</th><th>Ваша відповідь</th><th>Правильно</th><th>Результат</th></tr>'+rows+'</table>'+
+    '<p>'+(ok===3
+      ? "Ви добре відчуваєте поведінку складного відсотка. Переходьте до розбору графіків."
+      : "Розбіжність між інтуїцією та розрахунком — нормальна річ: складний відсоток зростає непомітно на початку і різко наприкінці горизонту. Уважно прочитайте розбір графіків нижче.")+'</p></div>';
+}
+
+function renderKPI(){
+  const m=S.m;
+  const inRange = m.tStar!==null && m.tStar>=1 && m.tStar<=MONTHS;
+  document.getElementById("kCross").textContent = m.tStar===null?"—":nf(m.tStar,2);
+  document.getElementById("kCrossU").textContent = m.tStar===null?"перетину немає":
+    (inRange?("≈ "+Math.round(m.tStar)+"-й місяць"):"поза горизонтом 60 міс.");
+  document.getElementById("kPrice").textContent = m.pStar===null?"—":nf(m.pStar);
+  document.getElementById("kGap").textContent = nf(m.gap[MONTHS-1]);
+  document.getElementById("kGapP").textContent = nf(m.gapPct[MONTHS-1],2);
+  const save=(m.tc1[MONTHS-1]-m.tc2[MONTHS-1])/1000;
+  document.getElementById("kSave").textContent = nf(save,1);
+}
+
+function renderTable(){
+  const m=S.m, hl = m.tStar?Math.round(m.tStar):-1;
+  let h="";
+  for(let i=0;i<MONTHS;i++){
+    const t=m.t[i];
+    h+='<tr'+(t===hl?' class="hl"':'')+'><td>'+t+'</td><td>'+nf(m.p1[i])+'</td><td>'+nf(m.p2[i])+
+       '</td><td>'+nf(m.tc1[i]/1000,1)+'</td><td>'+nf(m.tc2[i]/1000,1)+'</td><td>'+nf(m.p1lin[i])+
+       '</td><td>'+nf(m.gap[i])+'</td><td>'+nf(m.gapPct[i],2)+'</td></tr>';
+  }
+  document.querySelector("#tbl tbody").innerHTML=h;
+}
+
+/* ===================== ГРАФІКИ ===================== */
+function pal(light){
+  return light
+    ? {ink:"#16202B",ink2:"#4A5A68",grid:"#DEE6EB",a1:"#B03A2E",a2:"#1F5FA9",cross:"#1D7A4F",lin:"#71828F",surf:"#FFFFFF",fill:"rgba(176,58,46,0.10)"}
+    : {ink:"#E3EAF0",ink2:"#A9B8C4",grid:"#2C3B49",a1:"#E8796A",a2:"#6FA8E8",cross:"#5FC392",lin:"#8496A3",surf:"#16212C",fill:"rgba(232,121,106,0.14)"};
+}
+function baseOpts(c,yt,xt,anim){
+  return {responsive:true,maintainAspectRatio:false,animation:anim?{duration:450}:false,
+    interaction:{mode:"index",intersect:false},layout:{padding:{top:6,right:8}},
+    plugins:{legend:{labels:{color:c.ink2,font:{family:"IBM Plex Sans",size:12},boxWidth:16,boxHeight:3}},
+      tooltip:{backgroundColor:c.ink,titleColor:c.surf,bodyColor:c.surf,padding:10,cornerRadius:2,
+        titleFont:{family:"IBM Plex Sans",size:12},bodyFont:{family:"IBM Plex Mono",size:12}}},
+    scales:{x:{title:{display:true,text:xt||"Місяць проекту (t)",color:c.ink2,font:{family:"IBM Plex Sans",size:12}},
+        grid:{color:c.grid,drawTicks:false},border:{color:c.grid},
+        ticks:{color:c.ink2,font:{family:"IBM Plex Mono",size:11},maxTicksLimit:13,autoSkip:true}},
+      y:{title:{display:true,text:yt,color:c.ink2,font:{family:"IBM Plex Sans",size:12}},
+        grid:{color:c.grid,drawTicks:false},border:{color:c.grid},
+        ticks:{color:c.ink2,font:{family:"IBM Plex Mono",size:11}}}}};
+}
+const crossPlugin={id:"crossline",afterDatasetsDraw(chart,args,o){
+  if(!o||!o.t) return; const t=o.t; if(t<1||t>MONTHS) return;
+  const x=chart.scales.x.getPixelForValue(t-1),{top,bottom}=chart.chartArea,ctx=chart.ctx;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=1.6; ctx.strokeStyle=o.color||"#1D7A4F";
+  ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=o.color||"#1D7A4F"; ctx.font="600 12px 'IBM Plex Sans',sans-serif";
+  const lab="Кросовер: місяць "+Math.round(t), w=ctx.measureText(lab).width;
+  ctx.fillText(lab, Math.min(x+7, chart.chartArea.right-w-4), top+14); ctx.restore();
+}};
+const dotPlugin={id:"dotmark",afterDatasetsDraw(chart,args,o){
+  if(!o||o.x===undefined) return;
+  const px=chart.scales.x.getPixelForValue(o.x), py=chart.scales.y.getPixelForValue(o.y), ctx=chart.ctx;
+  ctx.save(); ctx.fillStyle=o.color||"#1D7A4F"; ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#FFFFFF"; ctx.lineWidth=1.5; ctx.stroke(); ctx.restore();
+}};
+Chart.register(crossPlugin, dotPlugin);
+
+function L(color,label,data,extra){
+  return Object.assign({label,data,borderColor:color,backgroundColor:color,borderWidth:2.2,
+    pointRadius:0,pointHitRadius:12,tension:.12,fill:false},extra||{});
+}
+function shorten(s){return s.length>32?s.slice(0,31)+"…":s;}
+
+function mainCfgs(c,anim){
+  const m=S.m,v=S.v,t=m.t;
+  const o1=baseOpts(c,"Тариф, грн/км",null,anim); o1.plugins.crossline={t:m.tStar,color:c.cross};
+  const o2=baseOpts(c,"Витрати, тис. грн/місяць",null,anim); o2.plugins.crossline={t:m.tStar,color:c.cross};
+  const o3=baseOpts(c,"Тариф Альтернативи 1, грн/км",null,anim);
+  const o4=baseOpts(c,"Дефіцит бюджету, %",null,anim);
+  return {
+    ch1:{type:"line",data:{labels:t,datasets:[
+      L(c.a1,"Альт. 1 — "+shorten(v.a1.name),m.p1),
+      L(c.a2,"Альт. 2 — "+shorten(v.a2.name),m.p2)]},options:o1},
+    ch2:{type:"line",data:{labels:t,datasets:[
+      L(c.a1,"TC₁ — Альтернатива 1",m.tc1.map(x=>x/1000),{borderDash:[6,4]}),
+      L(c.a2,"TC₂ — Альтернатива 2",m.tc2.map(x=>x/1000),{borderDash:[6,4]})]},options:o2},
+    ch3:{type:"line",data:{labels:t,datasets:[
+      L(c.a1,"Геометрична модель (точна)",m.p1),
+      L(c.lin,"Лінійна модель (спрощена)",m.p1lin,{borderDash:[6,4]})]},options:o3},
+    ch4:{type:"line",data:{labels:t,datasets:[
+      L(c.cross,"Відносна похибка лінійної моделі",m.gapPct,{fill:true,backgroundColor:c.fill,borderColor:c.a1})]},options:o4}
+  };
+}
+function drawMain(){
+  const c=pal(curTheme()==="light"), cf=mainCfgs(c,true);
+  ["ch1","ch2","ch3","ch4"].forEach(id=>{
+    if(S.charts[id]) S.charts[id].destroy();
+    S.charts[id]=new Chart(document.getElementById(id).getContext("2d"),cf[id]);
+  });
+}
+
+/* ===================== АВТОРОЗБІР ГРАФІКІВ ===================== */
+function renderAnalysis(){
+  const m=S.m,v=S.v,tr=m.tStar?Math.round(m.tStar):null;
+  const inR = tr!==null && tr<=MONTHS;
+
+  document.getElementById("an1").innerHTML =
+    "<h4>Як читати цей графік</h4>"+
+    "<p><b>Що зображено.</b> Дві криві тарифів за геометричною моделлю впродовж 60 місяців та вертикальна лінія точки їхнього перетину.</p>"+
+    "<p><b>Аналітичні висновки.</b> На старті проєкту (t = 1) Альтернатива 1 «"+esc(v.a1.name)+"» має нижчу базову вартість "+nf(v.a1.P)+" грн/км, ніж Альтернатива 2 «"+esc(v.a2.name)+"» — "+nf(v.a2.P)+" грн/км. Проте через високу річну інфляцію витрат першого перевізника ("+pc(v.a1.I*100)+") крива його тарифу зростає значно стрімкіше, ніж у другого ("+pc(v.a2.I*100)+"). "+
+    (inR ? "Точка кросоверу зафіксована у <b>"+tr+"-му місяці</b> (t* = "+nf(m.tStar,2)+"), де тарифи зрівнюються на рівні "+nf(m.pStar)+" грн/км."
+         : "У межах 60 місяців криві не перетинаються: розрахункове t* = "+(m.tStar===null?"не визначено":nf(m.tStar,2))+", тобто перша альтернатива залишається дешевшою протягом усього горизонту.")+"</p>"+
+    "<p><b>Управлінське рішення.</b> "+(inR
+      ? "За короткостроковим контрактом (до "+(tr-1)+"-го місяця) економічно вигідніше працювати з Альтернативою 1. Для 5-річного договору потрібно або одразу обирати Альтернативу 2, або передбачити в договорі автоматичний перехід із "+(tr+1)+"-го місяця."
+      : "На заданому горизонті перехід не потрібен, але слід контролювати фактичну інфляцію витрат: за її зростанням кросовер може настати раніше за розрахунковий.")+"</p>";
+
+  const tc1s=m.tc1[0]/1000, tc2s=m.tc2[0]/1000, tc1e=m.tc1[59]/1000, tc2e=m.tc2[59]/1000;
+  document.getElementById("an2").innerHTML =
+    "<h4>Як читати цей графік</h4>"+
+    "<p><b>Що зображено.</b> Реальний щомісячний бюджет підприємства на автоперевезення при стабільному обсязі V = 1000 км/місяць: TC(t) = V · P(t).</p>"+
+    "<p><b>Аналітичні висновки.</b> У 1-му місяці витрати на Альтернативу 1 становлять "+nf(tc1s,1)+" тис. грн, на Альтернативу 2 — "+nf(tc2s,1)+" тис. грн. "+
+    (inR ? "У "+tr+"-му місяці бюджетні витрати обох варіантів зрівнюються і досягають "+nf(m.pStar*V_VOL/1000,1)+" тис. грн/місяць. " : "")+
+    "Наприкінці 5-го року (t = 60) сукупні витрати за Альтернативою 1 зростають до "+nf(tc1e,1)+" тис. грн/місяць, тоді як за Альтернативою 2 становлять "+nf(tc2e,1)+" тис. грн/місяць.</p>"+
+    "<p><b>Управлінське рішення.</b> "+(tc1e>tc2e
+      ? "Вибір Альтернативи 2 для довгострокової логістики дозволяє економити близько <b>"+nf(tc1e-tc2e,1)+" тис. грн щомісяця</b> наприкінці 5-го року. Сумарні витрати за весь горизонт: "+nf(m.sum1/1e6,2)+" млн грн проти "+nf(m.sum2/1e6,2)+" млн грн."
+      : "На цьому горизонті Альтернатива 1 залишається дешевшою; сумарні витрати за 5 років: "+nf(m.sum1/1e6,2)+" млн грн проти "+nf(m.sum2/1e6,2)+" млн грн.")+"</p>";
+
+  document.getElementById("an3").innerHTML =
+    "<h4>Як читати цей графік</h4>"+
+    "<p><b>Що зображено.</b> Прогноз тарифу Альтернативи 1 за точною геометричною моделлю (суцільна лінія) та за спрощеною лінійною моделлю (пунктир).</p>"+
+    "<p><b>Аналітичні висновки.</b> Упродовж першого року обидві моделі дають майже однакові траєкторії, оскільки ефект капіталізації відсотків ще незначний — у 12-му місяці розбіжність складає лише "+nf(m.gap[11])+" грн/км. Починаючи з 2-го року спрощена модель починає суттєво занижувати реальний тариф. У 60-му місяці лінійна модель прогнозує "+nf(m.p1lin[59])+" грн/км, тоді як реальний геометричний тариф сягає "+nf(m.p1[59])+" грн/км. Абсолютна похибка заниження — <b>"+nf(m.gap[59])+" грн/км</b>, або "+nf(m.gap[59]*V_VOL/1000,1)+" тис. грн на місяць при обсязі 1000 км.</p>"+
+    "<p><b>Чому так.</b> Лінійна модель щомісяця додає одну й ту саму суму від початкової бази, а геометрична нараховує відсоток на вже підвищений тариф. Різниця накопичується непомітно й проявляється наприкінці горизонту як касовий розрив.</p>";
+
+  const minIdx=m.gapPct.indexOf(Math.min.apply(null,m.gapPct));
+  document.getElementById("an4").innerHTML =
+    "<h4>Як читати цей графік</h4>"+
+    "<p><b>Що зображено.</b> Відсоток дефіциту логістичного бюджету при спрощеному арифметичному плануванні.</p>"+
+    "<p><b>Аналітичні висновки.</b> Похибка починається з нуля в першому місяці, у межах першого року навіть опускається трохи нижче нуля (мінімум "+nf(m.gapPct[minIdx],2)+" % на "+(minIdx+1)+"-му місяці — лінійна модель тимчасово завищує тариф), а далі зростає монотонно і досягає <b>"+nf(m.gapPct[59],2)+" %</b> наприкінці 5-го року.</p>"+
+    "<p><b>Загальний висновок для ІТ-систем.</b> Використання спрощених лінійних алгоритмів у корпоративних інформаційних системах призводить до штучного заниження витрат. На 5-му році це створює дефіцит бюджету автоперевезень у розмірі "+nf(m.gapPct[59],1)+" %, що спричиняє касовий розрив і загрожує зупинкою поставок вантажів. У КІС слід застосовувати виключно геометричну модель капіталізації тарифів.</p>";
+}
+
+/* ===================== ВИБІР ТЕРМІНУ ===================== */
+const TERMS=[12,24,36,48,60];
+function buildTermOpts(){
+  const box=document.getElementById("termOpts"); box.innerHTML="";
+  TERMS.forEach(n=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="opt"; b.textContent=n+" місяців"; b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",()=>{
+      box.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true"); S.term=n; showTerm(n);
+    });
+    box.appendChild(b);
+  });
+  document.getElementById("termResult").innerHTML='<p class="fb">Оберіть термін, щоб побачити розрахунок.</p>';
+}
+function showTerm(n){
+  const v=S.v,m=S.m;
+  const c1=cumCost(v.a1.P,v.a1.I,n), c2=cumCost(v.a2.P,v.a2.I,n);
+  const better = c1<c2 ? 1 : 2;
+  const diff=Math.abs(c1-c2)/1e6;
+  const tr=m.tStar?Math.round(m.tStar):null;
+  let comment;
+  if(tr===null||tr>MONTHS){
+    comment="Кросовер за межами горизонту, тому Альтернатива 1 дешевша за будь-якого терміну в межах 5 років.";
+  }else if(n<tr){
+    comment="Обраний термін ("+n+" міс.) закінчується <b>до</b> точки кросоверу ("+tr+"-й місяць), тому перша альтернатива не встигає стати дорожчою. Це класичний короткостроковий контракт.";
+  }else{
+    const share=Math.round((n-tr)/n*100);
+    comment="Обраний термін ("+n+" міс.) перекриває точку кросоверу ("+tr+"-й місяць): близько "+share+" % часу дії договору перша альтернатива вже дорожча за другу. "+
+      (better===2?"Саме тому сумарно вигіднішою виявляється Альтернатива 2.":"Проте накопиченої переваги перших місяців ще вистачає, щоб Альтернатива 1 залишалася дешевшою сумарно — перевірте довший термін.");
+  }
+  document.getElementById("termResult").innerHTML=
+    '<table class="plain" style="margin-top:0">'+
+      '<tr><th>Показник</th><th>Альтернатива 1</th><th>Альтернатива 2</th></tr>'+
+      '<tr><td>Сумарні витрати за '+n+' міс., млн грн</td><td>'+nf(c1/1e6,3)+'</td><td>'+nf(c2/1e6,3)+'</td></tr>'+
+      '<tr><td>Тариф в останньому місяці, грн/км</td><td>'+nf(geom(v.a1.P,v.a1.I,n))+'</td><td>'+nf(geom(v.a2.P,v.a2.I,n))+'</td></tr>'+
+    '</table>'+
+    '<div class="box '+(better===2?"hint":"soft")+'" style="margin-top:0"><p><b>Вигідніша на цьому горизонті: Альтернатива '+better+'</b> — «'+esc(better===1?v.a1.name:v.a2.name)+'». Економія складає '+nf(diff,3)+' млн грн за '+n+' місяців.</p><p>'+comment+'</p></div>'+
+    '<p class="fb">Спробуйте інший термін і порівняйте, як змінюється рішення.</p>';
+}
+
+/* ===================== ЧУТЛИВІСТЬ ===================== */
+const i2Range=document.getElementById("i2Range"), i2ValEl=document.getElementById("i2Val");
+function initSens(){
+  const base=S.v.a2.I*100;
+  document.getElementById("i2Base").textContent=nf(base,1)+" %";
+  i2Range.value=Math.min(25,Math.max(10,Math.round(base*2)/2));
+  S.i2=parseFloat(i2Range.value)/100;
+  renderSens(); drawSens();
+  document.querySelector("#scenTbl tbody").innerHTML=""; 
+  document.getElementById("scenWrap").hidden=true;
+}
+i2Range.addEventListener("input",()=>{
+  S.i2=parseFloat(i2Range.value)/100;
+  renderSens(); drawSens();
+});
+function sensData(i2){
+  const v=S.v;
+  const t=crossMonth(v.a1.P,v.a1.I,v.a2.P,i2);
+  const p60=geom(v.a2.P,i2,60);
+  const sum=cumCost(v.a2.P,i2,60);
+  return {t,p60,sum,price:t!==null?geom(v.a1.P,v.a1.I,t):null};
+}
+function renderSens(){
+  const d=sensData(S.i2), m=S.m;
+  i2ValEl.textContent=nf(S.i2*100,1)+" %";
+  const out = d.t===null||d.t>MONTHS||d.t<1;
+  document.getElementById("sCross").textContent = d.t===null?"—":nf(d.t,2);
+  document.getElementById("sCrossU").textContent = out?"поза горизонтом 60 міс.":("≈ "+Math.round(d.t)+"-й місяць");
+  const shift = (d.t!==null&&m.tStar!==null)?(d.t-m.tStar):null;
+  document.getElementById("sShift").textContent = shift===null?"—":(shift>0?"+":"")+nf(shift,1);
+  document.getElementById("sP60").textContent=nf(d.p60);
+  document.getElementById("sSum").textContent=nf(d.sum/1e6,2);
+}
+function sensCurve(){
+  const xs=[],ys=[];
+  for(let p=10;p<=25.0001;p+=0.5){
+    const t=crossMonth(S.v.a1.P,S.v.a1.I,S.v.a2.P,p/100);
+    xs.push(nf(p,1)); ys.push(t===null?null:Math.min(t,120));
+  }
+  return {xs,ys};
+}
+function drawSens(){
+  const c=pal(curTheme()==="light");
+  const {xs,ys}=sensCurve();
+  const o=baseOpts(c,"Точка кросоверу t*, місяць","Річна інфляція витрат Альтернативи 2, %",true);
+  o.plugins.legend.display=false;
+  const idx=Math.round((S.i2*100-10)/0.5);
+  const cur=sensData(S.i2);
+  o.plugins.dotmark={x:idx,y:cur.t===null?null:Math.min(cur.t,120),color:c.cross};
+  const cfg={type:"line",data:{labels:xs,datasets:[L(c.a2,"t*",ys,{tension:.2})]},options:o};
+  if(S.charts.ch5) S.charts.ch5.destroy();
+  S.charts.ch5=new Chart(document.getElementById("ch5").getContext("2d"),cfg);
+}
+document.getElementById("saveScenario").addEventListener("click",()=>{
+  const d=sensData(S.i2), m=S.m;
+  const isBase=Math.abs(S.i2-S.v.a2.I)<1e-9;
+  S.scenarios.push({i2:S.i2,t:d.t,price:d.price,p60:d.p60,sum:d.sum,
+    diff:(d.sum-m.sum2)/1e6, base:isBase});
+  renderScenarios();
+});
+document.getElementById("clearScenarios").addEventListener("click",()=>{S.scenarios=[];renderScenarios();});
+function renderScenarios(){
+  const tb=document.querySelector("#scenTbl tbody");
+  document.getElementById("scenWrap").hidden = S.scenarios.length===0;
+  document.getElementById("scenStatus").textContent = S.scenarios.length
+    ? "Збережено сценаріїв: "+S.scenarios.length : "";
+  tb.innerHTML = S.scenarios.map((s,i)=>
+    "<tr><td>№"+(i+1)+(s.base?" (базовий)":"")+"</td><td>"+nf(s.i2*100,1)+"</td><td>"+
+    (s.t===null?"—":nf(s.t,2))+"</td><td>"+(s.price===null?"—":nf(s.price))+"</td><td>"+
+    nf(s.p60)+"</td><td>"+nf(s.sum/1e6,3)+"</td><td>"+(s.diff>=0?"+":"")+nf(s.diff,3)+" млн грн</td></tr>").join("");
+}
+
+/* ===================== КОНТРОЛЬНІ ПИТАННЯ ===================== */
+const QUIZ=[
+ {q:"У чому полягає відмінність між арифметичним та геометричним нарахуванням інфляції в автомобільно-дорожній логістиці?",
+  o:["Арифметична модель нараховує відсоток на початкову базу, геометрична — на вже підвищений тариф попереднього періоду",
+     "Арифметична модель застосовується для коротких маршрутів, геометрична — для довгих",
+     "Це різні назви однієї моделі",
+     "Геометрична модель ігнорує річну інфляцію"],
+  c:0, e:"Саме капіталізація («відсоток на відсоток») відрізняє геометричну модель. Арифметична щомісяця додає одну й ту саму суму від P₀, тому на довгому горизонті занижує тариф."},
+ {q:"Які фактори зумовлюють високий річний темп інфляції витрат для дизельних магістральних автопоїздів порівняно з електровантажівками?",
+  o:["Лише вартість страхування",
+     "Подорожчання дизельного пального, екологічні збори Євро-6/7, плата за платні автомагістралі, знос шин і зростання зарплат водіїв",
+     "Зміна курсу валют і більше нічого",
+     "Кількість рейсів на місяць"],
+  c:1, e:"Витрати дизельного перевізника формуються переважно зі змінних складових, які дорожчають випереджально. Електровантажівка має фіксовану вартість електроенергії за довгостроковим договором і мінімальні екологічні платежі."},
+ {q:"Що означає точка кросоверу тарифів і як вона визначає термін договору?",
+  o:["Місяць, у якому перевізник змінює маршрут",
+     "Місяць, у якому тарифи обох альтернатив зрівнюються; він задає межу вигідності короткострокового контракту",
+     "Момент завершення дії договору",
+     "Місяць з максимальними витратами підприємства"],
+  c:1, e:"t* — це розв'язок рівняння P₁(t) = P₂(t). До нього вигідна дешевша на старті альтернатива, після — стабільніша. Саме t* є природною межею короткострокового договору."},
+ {q:"Чому лінійна модель планування створює дефіцит бюджету на 5-річному горизонті?",
+  o:["Бо вона використовує застарілі тарифи",
+     "Бо вона не враховує капіталізацію відсотків і систематично занижує тариф із другого року",
+     "Бо вона завищує обсяг перевезень",
+     "Бо вона не враховує кількість водіїв"],
+  c:1, e:"Різниця між моделями непомітна в перший рік, але далі зростає нелінійно. Закладений у бюджет лінійний прогноз не покриває фактичних платежів перевізнику — виникає касовий розрив."},
+ {q:"Як зміна ставки інфляції другого автоперевізника впливає на зсув точки зміни економічної ефективності?",
+  o:["Ніяк не впливає",
+     "Що вища інфляція другої альтернативи, то пізніше настає кросовер, бо знаменник ln((1+I₁)/(1+I₂)) зменшується",
+     "Що вища інфляція другої альтернативи, то раніше настає кросовер",
+     "Кросовер зникає за будь-якої зміни інфляції"],
+  c:1, e:"У формулі t* знаменник ln((1+I₁)/(1+I₂)) скорочується при зростанні I₂, тому t* збільшується. Якщо I₂ наближається до I₁, кросовер зсувається за межі горизонту і перевага другої альтернативи зникає."}
+];
+function buildQuiz(){
+  const box=document.getElementById("quizBox"); box.innerHTML="";
+  S.quiz={answers:{},correct:0};
+  QUIZ.forEach((q,qi)=>{
+    const d=document.createElement("div"); d.className="qcard";
+    d.innerHTML='<div class="q">'+(qi+1)+'. '+q.q+'</div><div class="opts" style="flex-direction:column"></div><div class="fb"></div>';
+    const o=d.querySelector(".opts"), fb=d.querySelector(".fb");
+    q.o.forEach((txt,i)=>{
+      const b=document.createElement("button");
+      b.type="button"; b.className="opt"; b.textContent=txt;
+      b.addEventListener("click",()=>{
+        if(S.quiz.answers[qi]!==undefined) return;
+        S.quiz.answers[qi]=i;
+        o.querySelectorAll(".opt").forEach((x,j)=>{
+          if(j===q.c) x.classList.add("correct");
+          else if(j===i) x.classList.add("wrong");
+        });
+        const good=i===q.c; if(good) S.quiz.correct++;
+        fb.className="fb "+(good?"good":"bad");
+        fb.innerHTML=(good?"Правильно. ":"Неправильно. ")+q.e;
+        updScore();
+      });
+      o.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+  updScore();
+}
+function updScore(){
+  const answered=Object.keys(S.quiz.answers).length;
+  document.getElementById("quizScore").textContent =
+    answered===0?"" : "Результат: "+S.quiz.correct+" з "+QUIZ.length+
+      (answered<QUIZ.length?" (відповіді дано на "+answered+" з "+QUIZ.length+")":"");
+}
+
+/* ===================== ВИСНОВОК ===================== */
+const concl=document.getElementById("concl"), cnt=document.getElementById("cnt"), pdfBtn=document.getElementById("pdfBtn");
+function validateConcl(){
+  const n=concl.value.trim().length, ok=n>=40 && !!S.m;
+  cnt.textContent=n+" символів — "+(n>=40?"достатньо":"мінімум 40");
+  cnt.className="counter"+(n>=40?" ok":"");
+  pdfBtn.disabled=!ok;
+}
+concl.addEventListener("input",validateConcl);
+document.getElementById("tplBtn").addEventListener("click",()=>{
+  if(!S.m) return;
+  const m=S.m,v=S.v,tr=m.tStar?Math.round(m.tStar):null;
+  const inR=tr!==null&&tr<=MONTHS;
+  concl.value =
+"За результатами комп'ютерного моделювання для варіанта "+v.code+" ("+v.cat+") встановлено, що "+
+(inR?("точка зміни економічної ефективності автоперевізників настає у "+tr+"-му місяці, коли тарифи обох альтернатив зрівнюються на рівні "+nf(m.pStar)+" грн/км. До цього терміну доцільно працювати з Альтернативою 1 («"+v.a1.name+"»), після чого слід перейти на Альтернативу 2 («"+v.a2.name+"»).")
+    :("у межах 60 місяців тарифи альтернатив не зрівнюються, тому Альтернатива 1 («"+v.a1.name+"») залишається дешевшою протягом усього горизонту планування."))+
+" Наприкінці 5-го року щомісячні витрати становлять "+nf(m.tc1[59]/1000,1)+" тис. грн за Альтернативою 1 проти "+nf(m.tc2[59]/1000,1)+" тис. грн за Альтернативою 2.\n\n"+
+"Доведено, що використання спрощених лінійних формул у логістичному програмному забезпеченні призводить до накопичення похибки розрахунку бюджету на рівні "+nf(m.gapPct[59],2)+" % ("+nf(m.gap[59])+" грн/км, або "+nf(m.gap[59]*V_VOL/1000,1)+" тис. грн на місяць), тому в корпоративних інформаційних системах необхідно застосовувати виключно геометричну модель капіталізації тарифів.\n\n"+
+"Аналіз чутливості показав, що [опишіть, як змінювалася точка кросоверу при зміні інфляції другої альтернативи в діапазоні 10–25 % і наскільки стійким є ваше рішення].\n\n"+
+"Рекомендації підприємству: [сформулюйте 2–3 конкретні управлінські дії щодо терміну договору, застережень про індексацію та резерву бюджету].";
+  validateConcl(); concl.focus();
+});
+
+/* ===================== ЗВІТ / PDF ===================== */
+function chartImages(){
+  const stage=document.getElementById("offstage"); stage.innerHTML="";
+  const cf=mainCfgs(pal(true),false);
+  const out={};
+  const items=[["ch1",cf.ch1],["ch2",cf.ch2],["ch3",cf.ch3],["ch4",cf.ch4]];
+  // п'ятий графік — чутливість
+  const c=pal(true), {xs,ys}=sensCurve();
+  const o5=baseOpts(c,"Точка кросоверу t*, місяць","Річна інфляція витрат Альтернативи 2, %",false);
+  o5.plugins.legend.display=false;
+  items.push(["ch5",{type:"line",data:{labels:xs,datasets:[L(c.a2,"t*",ys,{tension:.2})]},options:o5}]);
+  items.forEach(([id,cfg])=>{
+    const box=document.createElement("div");
+    box.style.cssText="width:880px;height:420px;background:#FFFFFF;padding:8px";
+    const cv=document.createElement("canvas"); cv.width=880; cv.height=420;
+    box.appendChild(cv); stage.appendChild(box);
+    const ch=new Chart(cv.getContext("2d"),{type:cfg.type,data:cfg.data,
+      options:Object.assign({},cfg.options,{responsive:false,maintainAspectRatio:false,animation:false,devicePixelRatio:2})});
+    ch.update("none"); out[id]=cv.toDataURL("image/png",1.0); ch.destroy();
+  });
+  stage.innerHTML="";
+  return out;
+}
+
+function reportRows(){
+  const m=S.m,idx=[];
+  for(let t=1;t<=MONTHS;t+=3) idx.push(t);
+  if(m.tStar){const r=Math.round(m.tStar); if(r>=1&&r<=MONTHS&&idx.indexOf(r)<0) idx.push(r);}
+  if(idx.indexOf(MONTHS)<0) idx.push(MONTHS);
+  return idx.sort((a,b)=>a-b);
+}
+
+function buildReport(img){
+  const v=S.v,m=S.m,hl=m.tStar?Math.round(m.tStar):-1;
+  const TD='style="padding:4px 7px;text-align:right;border-bottom:1px solid #E4EAEE"';
+  const TDL='style="padding:4px 7px;text-align:left;border-bottom:1px solid #E4EAEE"';
+  const TH='style="padding:6px 7px;text-align:right;border-bottom:1.5px solid #16202B;font-size:10.5px;color:#4A5A68;font-family:\'IBM Plex Sans\',sans-serif"';
+  let rows="";
+  reportRows().forEach(t=>{
+    const i=t-1, bg=(t===hl)?' style="background:#E2F2EA;font-weight:600"':'';
+    rows+='<tr'+bg+'><td '+TDL+'>'+t+'</td><td '+TD+'>'+nf(m.p1[i])+'</td><td '+TD+'>'+nf(m.p2[i])+
+      '</td><td '+TD+'>'+nf(m.tc1[i]/1000,1)+'</td><td '+TD+'>'+nf(m.tc2[i]/1000,1)+'</td><td '+TD+'>'+
+      nf(m.p1lin[i])+'</td><td '+TD+'>'+nf(m.gap[i])+'</td><td '+TD+'>'+nf(m.gapPct[i],2)+'</td></tr>';
+  });
+  const d=new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"long",year:"numeric"});
+  const tr=m.tStar?Math.round(m.tStar):null, inR=tr!==null&&tr<=MONTHS;
+  const cell='style="padding:10px 12px;border:1px solid #C7D2DA;width:25%"';
+  const kv='font-family:\'IBM Plex Mono\',monospace;font-size:19px;font-weight:600';
+
+  const chartBlock=(t,c,i)=>'<div style="margin:0 0 18px;page-break-inside:avoid">'+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-weight:600;font-size:13px;margin-bottom:2px">'+t+'</div>'+
+    '<div style="font-size:11px;color:#4A5A68;margin-bottom:7px">'+c+'</div>'+
+    '<img src="'+i+'" style="width:100%;border:1px solid #C7D2DA;display:block"></div>';
+
+  const scenRows=S.scenarios.map((s,i)=>
+    '<tr><td '+TDL+'>№'+(i+1)+(s.base?" (базовий)":"")+'</td><td '+TD+'>'+nf(s.i2*100,1)+'</td><td '+TD+'>'+
+    (s.t===null?"—":nf(s.t,2))+'</td><td '+TD+'>'+nf(s.p60)+'</td><td '+TD+'>'+nf(s.sum/1e6,3)+'</td></tr>').join("");
+
+  const termBlock = S.term ? (function(){
+    const c1=cumCost(v.a1.P,v.a1.I,S.term), c2=cumCost(v.a2.P,v.a2.I,S.term);
+    return '<p style="margin:0 0 14px">Обраний студентом термін договору: <b>'+S.term+' місяців</b>. Сумарні витрати: Альтернатива 1 — '+
+      nf(c1/1e6,3)+' млн грн, Альтернатива 2 — '+nf(c2/1e6,3)+' млн грн. Вигідніша: <b>Альтернатива '+(c1<c2?1:2)+'</b>.</p>';
+  })() : '<p style="margin:0 0 14px;color:#8A5A00">Термін договору студентом не обрано.</p>';
+
+  return ''+
+  '<div style="width:900px;background:#FFFFFF;color:#16202B;padding:44px 52px;font-family:\'IBM Plex Sans\',sans-serif;font-size:12.5px;line-height:1.6">'+
+    '<div style="border-bottom:2px solid #16202B;padding-bottom:14px;margin-bottom:20px">'+
+      '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:13px;color:#4A5A68">Харківський національний автомобільно-дорожній університет</div>'+
+      '<div style="font-size:11.5px;color:#71828F;margin-bottom:14px">Кафедра кібербезпеки · дисципліна «Комп\'ютерні системи у логістиці» · спеціальність 122 «Комп\'ютерні науки»</div>'+
+      '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:23px;font-weight:600;line-height:1.2">Практична робота №2</div>'+
+      '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15.5px;color:#4A5A68;margin-top:3px">Моделювання підвищення тарифів автоперевезень та вибір оптимального стратегічного автоперевізника</div>'+
+    '</div>'+
+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">'+
+      '<tr><td style="padding:3px 0;color:#4A5A68;width:130px">Виконав(ла)</td><td style="padding:3px 0;font-weight:600">'+esc(S.pib)+'</td>'+
+      '<td style="padding:3px 0;color:#4A5A68;width:90px">Група</td><td style="padding:3px 0;font-weight:600">'+esc(S.grp)+'</td></tr>'+
+      '<tr><td style="padding:3px 0;color:#4A5A68">Варіант</td><td style="padding:3px 0;font-weight:600">'+esc(v.code)+' — '+esc(v.cat)+'</td>'+
+      '<td style="padding:3px 0;color:#4A5A68">Дата</td><td style="padding:3px 0">'+d+'</td></tr>'+
+      '<tr><td style="padding:3px 0;color:#4A5A68">Горизонт</td><td style="padding:3px 0">60 місяців (5 років)</td>'+
+      '<td style="padding:3px 0;color:#4A5A68">Обсяг V</td><td style="padding:3px 0">1000 км/місяць</td></tr>'+
+    '</table>'+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:0 0 8px">1. Вхідні дані варіанта</div>'+
+    '<p style="margin:0 0 12px;color:#2B3945">'+esc(v.desc)+'</p>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">'+
+      '<tr style="background:#F3F6F8"><th style="text-align:left;padding:6px 8px;border:1px solid #C7D2DA;width:40%">Параметр</th>'+
+      '<th style="text-align:right;padding:6px 8px;border:1px solid #C7D2DA">Альтернатива 1</th>'+
+      '<th style="text-align:right;padding:6px 8px;border:1px solid #C7D2DA">Альтернатива 2</th></tr>'+
+      '<tr><td style="padding:6px 8px;border:1px solid #DEE6EB">Автотранспортна технологія</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+esc(v.a1.name)+'</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+esc(v.a2.name)+'</td></tr>'+
+      '<tr><td style="padding:6px 8px;border:1px solid #DEE6EB">Базовий тариф P₀, грн/км</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+nf(v.a1.P)+'</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+nf(v.a2.P)+'</td></tr>'+
+      '<tr><td style="padding:6px 8px;border:1px solid #DEE6EB">Річна інфляція витрат I</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+pc(v.a1.I*100)+'</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+pc(v.a2.I*100)+'</td></tr>'+
+      '<tr><td style="padding:6px 8px;border:1px solid #DEE6EB">Тариф на 60-му місяці, грн/км</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+nf(m.p1[59])+'</td><td style="padding:6px 8px;border:1px solid #DEE6EB;text-align:right">'+nf(m.p2[59])+'</td></tr>'+
+    '</table>'+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:0 0 8px">2. Розрахункові співвідношення та результати</div>'+
+    '<p style="margin:0 0 5px">Геометрична модель: P(t) = P₀ · (1 + I)^((t−1)/12);&nbsp;&nbsp;лінійна модель: P(t) = P₀ · [1 + (I/12) · (t−1)];&nbsp;&nbsp;сукупні витрати: TC(t) = V · P(t).</p>'+
+    '<p style="margin:0 0 14px">Точка кросоверу: t* = 1 + 12 · ln(P₂,₀ / P₁,₀) / ln((1 + I₁) / (1 + I₂)).</p>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:12px"><tr>'+
+      '<td '+cell+'><div style="color:#4A5A68;font-size:11px">Точка кросоверу t*</div><div style="'+kv+';color:#1D7A4F">'+(m.tStar===null?"—":nf(m.tStar,2))+'</div><div style="font-size:10.5px;color:#71828F">'+(inR?tr+"-й місяць":"поза горизонтом")+'</div></td>'+
+      '<td '+cell+'><div style="color:#4A5A68;font-size:11px">Тариф у точці кросоверу</div><div style="'+kv+'">'+(m.pStar===null?"—":nf(m.pStar))+'</div><div style="font-size:10.5px;color:#71828F">грн/км</div></td>'+
+      '<td '+cell+'><div style="color:#4A5A68;font-size:11px">Заниження тарифу, 60-й місяць</div><div style="'+kv+';color:#8A5A00">'+nf(m.gap[59])+'</div><div style="font-size:10.5px;color:#71828F">грн/км</div></td>'+
+      '<td '+cell+'><div style="color:#4A5A68;font-size:11px">Дефіцит бюджету</div><div style="'+kv+';color:#8A5A00">'+nf(m.gapPct[59],2)+' %</div><div style="font-size:10.5px;color:#71828F">на 60-му місяці</div></td>'+
+    '</tr></table>'+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:0 0 8px">3. Таблиця розрахунків (кожен третій місяць)</div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:22px;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px">'+
+      '<thead><tr><th style="padding:6px 7px;text-align:left;border-bottom:1.5px solid #16202B;font-size:10.5px;color:#4A5A68;font-family:\'IBM Plex Sans\',sans-serif">t</th>'+
+      '<th '+TH+'>P₁ геом.</th><th '+TH+'>P₂ геом.</th><th '+TH+'>TC₁, тис.</th><th '+TH+'>TC₂, тис.</th>'+
+      '<th '+TH+'>P₁ лінійн.</th><th '+TH+'>Похибка, грн</th><th '+TH+'>Похибка, %</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:0 0 10px">4. Графічна інтерпретація</div>'+
+    chartBlock("Графік 1. Порівняльна динаміка тарифів автоперевізників","Точка перетину кривих визначає місяць зміни економічної ефективності.",img.ch1)+
+    chartBlock("Графік 2. Сукупні щомісячні логістичні витрати","TC(t) = V · P(t) при V = 1000 км/місяць.",img.ch2)+
+    chartBlock("Графік 3. Похибка лінійного планування для Альтернативи 1","Розходження кривих дорівнює недооцінці бюджету.",img.ch3)+
+    chartBlock("Графік 4. Динаміка відносної похибки лінійної моделі","Дефіцит бюджету у відсотках наростаючим підсумком.",img.ch4)+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:6px 0 8px">5. Управлінське рішення щодо терміну договору</div>'+
+    termBlock+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:6px 0 8px">6. Аналіз чутливості до інфляційних коливань</div>'+
+    chartBlock("Графік 5. Залежність точки кросоверу від інфляції Альтернативи 2","Діапазон зміни річної інфляції витрат: 10–25 %.",img.ch5)+
+    (S.scenarios.length
+      ? '<table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px">'+
+        '<thead><tr><th style="padding:6px 7px;text-align:left;border-bottom:1.5px solid #16202B;font-size:10.5px;color:#4A5A68;font-family:\'IBM Plex Sans\',sans-serif">Сценарій</th>'+
+        '<th '+TH+'>I₂, %</th><th '+TH+'>t*, міс.</th><th '+TH+'>P₂ на 60-му</th><th '+TH+'>Витрати за 5 р., млн грн</th></tr></thead><tbody>'+scenRows+'</tbody></table>'
+      : '<p style="margin:0 0 16px;color:#8A5A00">Сценарії чутливості студентом не збережено.</p>')+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:6px 0 8px">7. Контрольні питання</div>'+
+    '<p style="margin:0 0 16px">Результат тестування: <b>'+S.quiz.correct+' з '+QUIZ.length+'</b>. Самостійний прогноз до розрахунку: <b>'+(S.predict.score||0)+' з 3</b>.</p>'+
+
+    '<div style="font-family:\'IBM Plex Serif\',Georgia,serif;font-size:15px;font-weight:600;margin:6px 0 8px;page-break-inside:avoid">8. Висновок і рекомендації</div>'+
+    '<div style="border-left:3px solid #16202B;padding:2px 0 2px 14px;white-space:pre-wrap;page-break-inside:avoid">'+esc(concl.value.trim())+'</div>'+
+
+    '<div style="margin-top:32px;display:flex;justify-content:space-between;page-break-inside:avoid">'+
+      '<div style="font-size:11.5px;color:#4A5A68">Виконав(ла): '+esc(S.pib)+', група '+esc(S.grp)+'</div>'+
+      '<div style="font-size:11.5px;color:#4A5A68;border-top:1px solid #16202B;padding-top:4px;width:190px;text-align:center">підпис</div>'+
+    '</div>'+
+    '<div style="margin-top:22px;border-top:1px solid #C7D2DA;padding-top:8px;font-size:10.5px;color:#71828F">'+
+      'ХНАДУ, кафедра кібербезпеки. Практична робота №2 з дисципліни «Комп\'ютерні системи у логістиці». Розробила: Крайнюк Олена.</div>'+
+  '</div>';
+}
+
+const pdfStatus=document.getElementById("pdfStatus");
+pdfBtn.addEventListener("click",async()=>{
+  pdfBtn.disabled=true; pdfStatus.textContent="Формуємо звіт…";
+  try{
+    const img=chartImages();
+    const zone=document.getElementById("printzone");
+    zone.innerHTML=buildReport(img);
+    await new Promise(r=>setTimeout(r,250));
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const node=zone.firstElementChild;
+    const canvas=await html2canvas(node,{scale:2,backgroundColor:"#FFFFFF",useCORS:true,logging:false,windowWidth:900});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"p",unit:"mm",format:"a4"});
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    const imgH=canvas.height*pw/canvas.width;
+    const data=canvas.toDataURL("image/jpeg",0.92);
+    let left=imgH,pos=0;
+    pdf.addImage(data,"JPEG",0,0,pw,imgH); left-=ph;
+    while(left>0.5){pos-=ph; pdf.addPage(); pdf.addImage(data,"JPEG",0,pos,pw,imgH); left-=ph;}
+    const safe=(S.pib+"_"+S.grp).replace(/\s+/g,"_").replace(/[^\wа-яА-ЯіїєґІЇЄҐ_\-]/g,"");
+    const pdfBlob = pdf.output("blob");
+    await saveFile("ПР2_"+S.v.code+"_"+safe+".pdf", pdfBlob);
+    zone.innerHTML=""; pdfStatus.textContent="Звіт збережено.";
+  }catch(e){
+    console.error(e);
+    pdfStatus.textContent="Не вдалося зібрати PDF. Скористайтеся кнопкою «Друк через браузер» і виберіть «Зберегти як PDF».";
+  }
+  pdfBtn.disabled=false;
+  setTimeout(()=>{if(pdfStatus.textContent==="Звіт збережено.") pdfStatus.textContent="";},5000);
+});
+document.getElementById("printBtn").addEventListener("click",()=>{
+  if(!S.m){pdfStatus.textContent="Спочатку виконайте моделювання.";return;}
+  const img=chartImages();
+  const w=window.open("","_blank");
+  if(!w){pdfStatus.textContent="Браузер заблокував нове вікно — дозвольте спливаючі вікна.";return;}
+  w.document.write('<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Практична робота №2</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">'+
+    '<style>@page{size:A4;margin:12mm}body{margin:0;background:#fff}</style></head><body>'+buildReport(img)+'</body></html>');
+  w.document.close();
+  setTimeout(()=>{w.focus();w.print();},900);
+});
+
+["pib","grp"].forEach(id=>{
+  document.getElementById(id).addEventListener("keydown",e=>{
+    if(e.key==="Enter") document.getElementById("genBtn").click();
+  });
+});
+</script>
+</body>
+</html>
